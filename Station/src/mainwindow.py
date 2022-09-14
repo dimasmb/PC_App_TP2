@@ -79,6 +79,7 @@ class Stations(QMainWindow, Ui_Stations):
             self.axes[i].set_yticks([])
             self.axes[i].set_zticks([])
             self.figures[i].tight_layout()
+            self.axes[i].view_init(30, 45)
             self.canvases[i].show()
 
         self.timer = QTimer()
@@ -88,7 +89,7 @@ class Stations(QMainWindow, Ui_Stations):
         self.cont=0
 
     def refreshGrafik(self):
-        self.cont+=1
+        self.cont=1
 
         self.rolidos[0].setText(str(self.cont)+'º')
         self.orientaciones[1].setText(str(self.cont)+'º')
@@ -104,16 +105,26 @@ class Stations(QMainWindow, Ui_Stations):
             yy = self.y_init* np.cos(cabeceo_val[i]*(np.pi/180))
             zz = self.z_init + self.x_init * np.sin(rolido_val[i]*(np.pi/180)) + self.y_init * np.sin(cabeceo_val[i]*(np.pi/180))
 
-            # xx[0] += self.x_init[0] * np.sin(orient_val[i])
-            # xx[1] -= self.x_init[1] * np.sin(orient_val[i])
-            # xx[2] -= self.x_init[2] * np.sin(orient_val[i])
-            # xx[3] += self.x_init[3] * np.sin(orient_val[i])
-            #
-            # yy[0] -= self.y_init[0] * (1 - np.sin(orient_val[i]))
-            # yy[1] -= self.y_init[1] * (1 - np.sin(orient_val[i]))
-            # yy[2] += self.y_init[2] * (1 - np.sin(orient_val[i]))
-            # yy[3] += self.y_init[3] * (1 - np.sin(orient_val[i]))
-            # yy += self.y_init * np.cos(orient_val[i])
+            if(orient_val[i]>=0 and orient_val[i]<=45):
+                xx[0] -= self.x_init[0] * np.sin(orient_val[i]*(np.pi/180))
+                xx[1] += self.x_init[1] * np.sin(orient_val[i]*(np.pi/180))
+                xx[2] -= self.x_init[2] * np.sin(orient_val[i]*(np.pi/180))
+                xx[3] += self.x_init[3] * np.sin(orient_val[i]*(np.pi/180))
+
+                yy[0] += self.y_init[0] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[1] -= self.y_init[1] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[2] += self.y_init[2] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[3] -= self.y_init[3] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+            elif(orient_val[i]<=90):
+                xx[0] += self.x_init[0] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[1] -= self.x_init[1] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[2] += self.x_init[2] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[3] += self.x_init[3] * np.sin(orient_val[i] * (np.pi / 180))
+
+                yy[0] += self.y_init[0] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[1] += self.y_init[1] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[2] -= self.y_init[2] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[3] -= self.y_init[3] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
 
             vertices = [list(zip(xx, yy, zz))]
 
@@ -125,9 +136,9 @@ class Stations(QMainWindow, Ui_Stations):
             self.axes[i].set_ylim(-4, 4)
             self.axes[i].set_zlim(-4, 4)
             self.axes[i].grid(True)
-            self.axes[i].set_xticks([])
-            self.axes[i].set_yticks([])
-            self.axes[i].set_zticks([])
+            # self.axes[i].set_xticks([])
+            # self.axes[i].set_yticks([])
+            # self.axes[i].set_zticks([])
             self.figures[i].tight_layout()
             self.canvases[i].draw()
 
