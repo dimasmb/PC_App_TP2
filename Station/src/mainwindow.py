@@ -1,6 +1,6 @@
 # PyQt5 modules
 from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QTimer,QDateTime
+from PyQt5.QtCore import QTimer
 
 # Project modules
 from src.ui.mainwindow import Ui_Stations
@@ -8,7 +8,7 @@ from src.ui.mainwindow import Ui_Stations
 # Utilities
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
-import matplotlib.animation as anim
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 
 class Stations(QMainWindow, Ui_Stations):
@@ -28,13 +28,15 @@ class Stations(QMainWindow, Ui_Stations):
             self.orientaciones[i].setText('0º')
 
         #inicializo los graficos
-        x = np.arange(-2.0, 2.0, 0.5)
-        y = np.arange(-4.0, 4.0, 0.5)
-        X, Y = np.meshgrid(x, y)
-        zs = np.zeros(X.shape)
 
-        self.start_elev = 30
-        self.start_xy = -45
+        self.x_init = np.array([-2, -2, 2, 2])
+        self.y_init = np.array([-4, 4, 4, -4])
+        self.z_init = np.array([0, 0, 0, 0])
+
+        # self.x_init = np.linspace(-2.0, 2.0, 10)
+        # self.y_init = np.linspace(-4.0, 4.0, 10)
+        # X, Y = np.meshgrid(self.x_init, self.y_init)
+        # zs = np.zeros(X.shape)
 
         self.figure_station0 = Figure(figsize=(3, 3))
         self.canvas_station0 = FigureCanvas(self.figure_station0)
@@ -65,50 +67,79 @@ class Stations(QMainWindow, Ui_Stations):
         self.axes = [self.ax_station0, self.ax_station1, self.ax_station2, self.ax_station3, self.ax_station4]
         self.canvases = [self.canvas_station0, self.canvas_station1, self.canvas_station2, self.canvas_station3, self.canvas_station4]
 
+        vertices = [list(zip(self.x_init, self.y_init, self.z_init))]
         for i in range(len(self.axes)):
-            self.axes[i].quiver([0, 0], [-4, -4], [0, 0], [-1, 0], [0, 0], [0, 1], length=2, color='red',
-                                    normalize=True)
-            self.axes[i].plot_surface(X, Y, zs)
+            self.axes[i].quiver([0, 0], [-4, -4], [0, 0], [-1, 0], [0, 0], [0, 1], length=2, color='red', normalize=True)
+            self.axes[i].add_collection3d(Poly3DCollection(vertices))
             self.axes[i].set_xlim(-4, 4)
             self.axes[i].set_ylim(-4, 4)
             self.axes[i].set_zlim(-4, 4)
-            self.axes[i].set_axis_off()
-            self.axes[i].set_axis_off()
-            self.axes[i].view_init(self.start_elev, self.start_xy - 10)
+            self.axes[i].grid(True)
+            self.axes[i].set_xticks([])
+            self.axes[i].set_yticks([])
+            self.axes[i].set_zticks([])
+            self.figures[i].tight_layout()
+            self.axes[i].view_init(30, 45)
             self.canvases[i].show()
 
-        # inicializo timer
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.refreshGrafik)
-        # self.timer.start(1000)
-        val=np.zeros((4, 3))
-        anim.FuncAnimation(self.figure_station0, self.refresh, interval=1000/60, fargs=(1, val))
-    #https://www.youtube.com/watch?v=xEhgxJcH5hk
-    def refresh(self, frames, values):
-        for i in range(len(self.rolidos)):
-            self.rolidos[i].setText(str(values[i, 0] + frames) + 'º')
-            self.cabeceos[i].setText(str(values[i, 1]) + 'º')
-            self.orientaciones[i].setText(str(values[i, 2]) + 'º')
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.refreshGrafik)
+        self.timer.start(50)
 
+        self.cont=0
+
+    def refreshGrafik(self):
+        self.cont=1
+
+        self.rolidos[0].setText(str(self.cont)+'º')
+        self.orientaciones[1].setText(str(self.cont)+'º')
+        self.rolidos[2].setText(str(self.cont)+'º')
+        self.rolidos[3].setText(str(self.cont)+'º')
+        # self.cabeceos[0].setText(str(self.cont)+'º')
         rolido_val = [int(i.text()[:-1]) for i in self.rolidos]
         cabeceo_val = [int(i.text()[:-1]) for i in self.cabeceos]
         orient_val = [int(i.text()[:-1]) for i in self.orientaciones]
 
-        x=np.linspace(-4*np.cos(cabeceo_val), 4*np.cos(cabeceo_val), 10)
-        y=np.linspace(-4*np.cos(rolido_val), 4*np.cos(rolido_val), 10)
-
-        # z = x*np.sin(cabeceo_val) + y*np.sin(cabeceo_val)
-        zx = (x*np.sin(cabeceo_val))
-        zy = (y*np.sin(cabeceo_val))
-
         for i in range(len(self.axes)):
-            # self.axes[i].cla()
-            # self.axes[i] = self.figures[i].add_subplot(projection='3d')
-            self.axes[i].plot_surface(x[:, i], y[:, i], np.array([zx[:, i], zy[:, i]]))
-            self.canvases[i].show()
+            xx = self.x_init * np.cos(rolido_val[i]*(np.pi/180))
+            yy = self.y_init* np.cos(cabeceo_val[i]*(np.pi/180))
+            zz = self.z_init + self.x_init * np.sin(rolido_val[i]*(np.pi/180)) + self.y_init * np.sin(cabeceo_val[i]*(np.pi/180))
 
-        self.ax_station0.view_init(30, -50)
+            if(orient_val[i]>=0 and orient_val[i]<=45):
+                xx[0] -= self.x_init[0] * np.sin(orient_val[i]*(np.pi/180))
+                xx[1] += self.x_init[1] * np.sin(orient_val[i]*(np.pi/180))
+                xx[2] -= self.x_init[2] * np.sin(orient_val[i]*(np.pi/180))
+                xx[3] += self.x_init[3] * np.sin(orient_val[i]*(np.pi/180))
+
+                yy[0] += self.y_init[0] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[1] -= self.y_init[1] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[2] += self.y_init[2] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+                yy[3] -= self.y_init[3] * (1 - np.cos(orient_val[i]*(np.pi/180)))
+            elif(orient_val[i]<=90):
+                xx[0] += self.x_init[0] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[1] -= self.x_init[1] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[2] += self.x_init[2] * np.sin(orient_val[i] * (np.pi / 180))
+                xx[3] += self.x_init[3] * np.sin(orient_val[i] * (np.pi / 180))
+
+                yy[0] += self.y_init[0] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[1] += self.y_init[1] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[2] -= self.y_init[2] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+                yy[3] -= self.y_init[3] * (1 - np.cos(orient_val[i] * (np.pi / 180)))
+
+            vertices = [list(zip(xx, yy, zz))]
 
 
+            self.axes[i].cla()
+            self.axes[i].quiver([0, 0], [-4, -4], [0, 0], [-1, 0], [0, 0], [0, 1], length=2, color='red', normalize=True)
+            self.axes[i].add_collection3d(Poly3DCollection(vertices))
+            self.axes[i].set_xlim(-4, 4)
+            self.axes[i].set_ylim(-4, 4)
+            self.axes[i].set_zlim(-4, 4)
+            self.axes[i].grid(True)
+            # self.axes[i].set_xticks([])
+            # self.axes[i].set_yticks([])
+            # self.axes[i].set_zticks([])
+            self.figures[i].tight_layout()
+            self.canvases[i].draw()
 
 
