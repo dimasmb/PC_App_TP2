@@ -1,6 +1,7 @@
 import sys
 import glob
 import serial
+from serial.tools import list_ports
 
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -39,12 +40,9 @@ def open_serial(COM_num, baud):
     ser = serial.Serial(COM_num, baud, timeout=0, rtscts=1)
     # s = ser.read(100)
 
-
-fig = plt.figure()
-ax = Axes3D(fig)
-x = [0,0.5,0,-0.5]
-y = [-0.2,0,1,0.8]
-z = [0,0,0,0]
-verts = [list(zip(x,y,z))]
-ax.add_collection3d(Poly3DCollection(verts))
-plt.show()
+def read_ports():
+    ports = list_ports.comports()
+    for port, desc, hwid in sorted(ports):
+            print("{}: {} [{}]".format(port, desc, hwid))
+    return ports
+    # print(serial_ports())

@@ -9,7 +9,7 @@ from src.ui.mainwindow import Ui_Stations
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
+import drv_serial
 import numpy as np
 
 class Stations(QMainWindow, Ui_Stations):
@@ -27,6 +27,12 @@ class Stations(QMainWindow, Ui_Stations):
             self.rolidos[i].setText('0º')
             self.cabeceos[i].setText('0º')
             self.orientaciones[i].setText('0º')
+
+        ports = drv_serial.read_ports()
+        if(ports):
+            for port, desc, hwid in sorted(ports):
+                self.comboBox.addItem("{}: {} [{}]".format(port, desc, hwid))
+        else: self.Error_label.setText('No se encontró un puerto COM')
 
         #inicializo los graficos
 
