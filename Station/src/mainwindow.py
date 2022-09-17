@@ -9,16 +9,21 @@ from src.ui.mainwindow import Ui_Stations
 from matplotlib.backends.backend_qt5agg import (FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import drv_serial
+from src.drv_serial import search_ports
+import serial
+from serial.tools import list_ports
 import numpy as np
+
 
 class Stations(QMainWindow, Ui_Stations):
 
     def __init__(self):
         super(Stations, self).__init__()
         self.setupUi(self)
+        self.ser = None
+        self.serial_opened = False
 
-        #inicializo los valores
+        # inicializo los valores
         self.rolidos = [self.rolido0_val, self.rolido1_val, self.rolido2_val, self.rolido3_val, self.rolido4_val]
         self.cabeceos = [self.cabeceo0_val, self.cabeceo1_val, self.cabeceo2_val, self.cabeceo3_val, self.cabeceo4_val]
         self.orientaciones = [self.orient0_val, self.orient1_val, self.orient2_val, self.orient3_val, self.orient4_val]
@@ -28,14 +33,67 @@ class Stations(QMainWindow, Ui_Stations):
             self.cabeceos[i].setText('0º')
             self.orientaciones[i].setText('0º')
 
-        ports = drv_serial.read_ports()
-        if(ports):
-            for port, desc, hwid in sorted(ports):
-                self.comboBox.addItem("{}: {} [{}]".format(port, desc, hwid))
-        else: self.Error_label.setText('No se encontró un puerto COM')
+        # inicializo los graficos
+        self.init_grafs()
 
-        #inicializo los graficos
+        #self.com_ports = search_ports()
 
+        self.Btn_buscar.clicked.connect(self.look4ports)
+        self.Btn_Abrir.clicked.connect(self.open_port)
+        self.Btn_Cerrar.clicked.connect(self.close_port)
+
+        self.look4ports()
+
+        # inicializo timer
+        self.refresh_timer = QTimer()
+        self.refresh_timer.timeout.connect(self.refreshGrafik)
+
+        self.start_refresher()
+        self.cont=0
+
+    def open_port(self):
+        if self.comboBox.count() >= 1:
+            comx = self.comboBox.currentText()
+            comx = comx.split()
+            try:
+                self.ser = serial.Serial(comx[0], timeout=0)
+                self.serial_opened = True
+                self.Error_label.setText('Puerto {} abierto'.format(comx[0]))
+                self.Error_label.setStyleSheet('color: black')
+            except serial.SerialException:
+                self.Error_label.setText('No se pudo abrir el puerto')
+                self.Error_label.setStyleSheet('color: red')
+        else:
+            self.Error_label.setText('No hay puertos para abrir')
+            self.Error_label.setStyleSheet('color: red')
+
+    def close_port(self):
+        if self.serial_opened:
+            self.ser.close()
+            self.Error_label.setText('Puerto cerrado')
+            self.Error_label.setStyleSheet('color: black')
+            self.serial_opened = False
+        else:
+            self.Error_label.setText('No hay un puerto abierto')
+            self.Error_label.setStyleSheet('color: red')
+
+    def look4ports(self):
+        self.Error_label.setText('Buscando puertos COM abiertos...')
+        self.Error_label.setStyleSheet('color: black')
+        com_ports = search_ports()
+        self.comboBox.clear()
+        if com_ports:
+            for port, desc, hwid in sorted(com_ports):
+                self.comboBox.addItem("{} : {} [{}]".format(port, desc, hwid))
+            self.Error_label.setText('Busqueda terminada\nPuertos encontrados: {}'.format(self.comboBox.count()))
+        else:
+            self.Error_label.setText('No se encontró un puerto COM')
+            self.Error_label.setStyleSheet('color: red')
+
+    def start_refresher(self):
+        self.refresh_timer.start(50)
+
+    def init_grafs(self):
         self.x_init = np.array([-2, -2, 2, 2])
         self.y_init = np.array([-4, 4, 4, -4])
         self.z_init = np.array([0, 0, 0, 0])
@@ -45,10 +103,6 @@ class Stations(QMainWindow, Ui_Stations):
         self.vert2_init = -self.vert1_init
         self.vert3_init = -self.vert0_init
         self.vert_init = [self.vert0_init, self.vert1_init, self.vert2_init, self.vert3_init, ]
-        # self.x_init = np.linspace(-2.0, 2.0, 10)
-        # self.y_init = np.linspace(-4.0, 4.0, 10)
-        # X, Y = np.meshgrid(self.x_init, self.y_init)
-        # zs = np.zeros(X.shape)
 
         self.figure_station0 = Figure(figsize=(3, 3))
         self.canvas_station0 = FigureCanvas(self.figure_station0)
@@ -92,19 +146,14 @@ class Stations(QMainWindow, Ui_Stations):
             self.axes[i].axis('off')
             self.canvases[i].show()
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.refreshGrafik)
-        self.timer.start(50)
-
-        self.cont=0
-
     def refreshGrafik(self):
-        self.cont+=1
 
+        """FOR DEBUG"""
+        self.cont += 1
         self.rolidos[0].setText(str(self.cont)+'º')
         self.orientaciones[1].setText(str(self.cont)+'º')
         self.cabeceos[2].setText(str(self.cont)+'º')
-
+        """-----------------------------"""
         rolido_val = [int(i.text()[:-1]) for i in self.rolidos]
         cabeceo_val = [int(i.text()[:-1]) for i in self.cabeceos]
         orient_val = [int(i.text()[:-1]) for i in self.orientaciones]
@@ -118,20 +167,23 @@ class Stations(QMainWindow, Ui_Stations):
 
             vertices = [list(zip(xx, yy, zz))]
             self.axes[i].cla()
-            # self.axes[i].quiver([(xx[2]+xx[3])/2], [(yy[2]+yy[3])/2], [(zz[2]+zz[3])/2], [0], [0], [1], length=2, color='red', normalize=True)
-            norte = self.axes[i].quiver([0], [0], [5], [-sin[i]], [cos[i]], [0],
+            self.axes[i].quiver([0], [0], [7], [-sin[i]], [cos[i]], [0],
                                 length=2, color='red', normalize=True) #Norte
-            self.axes[i].quiver([0], [0], [5], [sin[i]], [-cos[i]], [0],
+            self.axes[i].quiver([0], [0], [7], [sin[i]], [-cos[i]], [0],
                                 length=2, color='blue', normalize=True)  # Sur
-            self.axes[i].quiver([0], [0], [5], [-cos[i]], [-sin[i]], [0],
-                                length=2, color='green', normalize=True)  # Norte
-            self.axes[i].quiver([0], [0], [5], [cos[i]], [sin[i]], [0],
-                                length=2, color='orange', normalize=True)  # Norte
-            self.axes[i].text(-sin[i]*2.5, cos[i]*2.5, 5, 'N')
-            self.axes[i].text(sin[i]*2.5, -cos[i]*2.5, 5, 'S')
-            self.axes[i].text(-cos[i]*2.5, -sin[i]*2.5, 5, 'E')
-            self.axes[i].text(cos[i]*3.5, sin[i]*3.5, 5, 'O')
+            self.axes[i].quiver([0], [0], [7], [-cos[i]], [-sin[i]], [0],
+                                length=2, color='green', normalize=True)  # Oeste
+            self.axes[i].quiver([0], [0], [7], [cos[i]], [sin[i]], [0],
+                                length=2, color='orange', normalize=True)  # Este
+            self.axes[i].text(-sin[i]*2.5, cos[i]*2.5, 7, 'N')
+            self.axes[i].text(sin[i]*2.5, -cos[i]*2.5, 7, 'S')
+            self.axes[i].text(-cos[i]*2.5, -sin[i]*2.5, 7, 'O')
+            self.axes[i].text(cos[i]*3.5, sin[i]*3.5, 7, 'E')
             self.axes[i].add_collection3d(Poly3DCollection(vertices))
+            # self.axes[i].scatter((xx[2]+xx[1])/2, ((yy[2]+yy[1])/2)*1.5, ((zz[2]+zz[1])/2)*1.5, c='red', linewidth=3)
+            self.axes[i].quiver([(xx[2]+xx[1])/2], [(yy[2]+yy[1])/2], [(zz[2]+zz[1])/2],
+                                [xx[2], xx[1]], [yy[2], yy[1]], [zz[2], zz[1]],
+                                length=1, color='red', normalize=True)  # Norte
             self.axes[i].set_xlim(-4, 4)
             self.axes[i].set_ylim(-4, 4)
             self.axes[i].set_zlim(-4, 4)
@@ -141,3 +193,9 @@ class Stations(QMainWindow, Ui_Stations):
             self.figures[i].tight_layout()
             self.axes[i].view_init(30, 45+orient_val[i])
             self.canvases[i].draw()
+
+    def closeEvent(self, event):
+        self.close_port()
+        event.accept()
+
+

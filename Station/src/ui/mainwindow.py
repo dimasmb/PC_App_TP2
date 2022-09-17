@@ -461,19 +461,28 @@ class Ui_Stations(object):
         self.Title_tipofiltro_24.setAlignment(QtCore.Qt.AlignCenter)
         self.Title_tipofiltro_24.setObjectName("Title_tipofiltro_24")
         self.verticalLayout_2.addWidget(self.Title_tipofiltro_24)
+        self.Error_label = QtWidgets.QLabel(self.frame_grafs_18)
+        self.Error_label.setStyleSheet("color: rgb(255, 0, 0);")
+        self.Error_label.setText("")
+        self.Error_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.Error_label.setObjectName("Error_label")
+        self.verticalLayout_2.addWidget(self.Error_label)
+        self.horizontalLayout_44 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_44.setObjectName("horizontalLayout_44")
         self.comboBox = QtWidgets.QComboBox(self.frame_grafs_18)
+        self.comboBox.setMaximumSize(QtCore.QSize(250, 16777215))
         self.comboBox.setStyleSheet("QComboBox{\n"
 "background-color: rgb(220, 220, 220);\n"
 "}")
         self.comboBox.setObjectName("comboBox")
-        self.verticalLayout_2.addWidget(self.comboBox)
-        self.pushButton = QtWidgets.QPushButton(self.frame_grafs_18)
-        self.pushButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton.setMouseTracking(False)
-        self.pushButton.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.pushButton.setWhatsThis("")
-        self.pushButton.setAutoFillBackground(False)
-        self.pushButton.setStyleSheet("QPushButton{\n"
+        self.horizontalLayout_44.addWidget(self.comboBox)
+        self.Btn_buscar = QtWidgets.QPushButton(self.frame_grafs_18)
+        self.Btn_buscar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Btn_buscar.setMouseTracking(False)
+        self.Btn_buscar.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.Btn_buscar.setWhatsThis("")
+        self.Btn_buscar.setAutoFillBackground(False)
+        self.Btn_buscar.setStyleSheet("QPushButton{\n"
 "    background-color: rgb(132, 132, 132);\n"
 "    border-radius: 5px;\n"
 "    border-style: outset;\n"
@@ -486,23 +495,71 @@ class Ui_Stations(object):
 "    background-color: rgb(0, 85, 255);\n"
 "}\n"
 "")
-        self.pushButton.setCheckable(False)
-        self.pushButton.setObjectName("pushButton")
-        self.verticalLayout_2.addWidget(self.pushButton)
-        self.Error_label = QtWidgets.QLabel(self.frame_grafs_18)
-        self.Error_label.setStyleSheet("color: rgb(255, 0, 0);")
-        self.Error_label.setText("")
-        self.Error_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.Error_label.setObjectName("Error_label")
-        self.verticalLayout_2.addWidget(self.Error_label)
-        self.textBrowser = QtWidgets.QTextBrowser(self.frame_grafs_18)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.Btn_buscar.setCheckable(False)
+        self.Btn_buscar.setObjectName("Btn_buscar")
+        self.horizontalLayout_44.addWidget(self.Btn_buscar)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_44)
+        self.Btn_Abrir = QtWidgets.QPushButton(self.frame_grafs_18)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textBrowser.sizePolicy().hasHeightForWidth())
-        self.textBrowser.setSizePolicy(sizePolicy)
-        self.textBrowser.setObjectName("textBrowser")
-        self.verticalLayout_2.addWidget(self.textBrowser)
+        sizePolicy.setHeightForWidth(self.Btn_Abrir.sizePolicy().hasHeightForWidth())
+        self.Btn_Abrir.setSizePolicy(sizePolicy)
+        self.Btn_Abrir.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Btn_Abrir.setMouseTracking(False)
+        self.Btn_Abrir.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.Btn_Abrir.setWhatsThis("")
+        self.Btn_Abrir.setAutoFillBackground(False)
+        self.Btn_Abrir.setStyleSheet("QPushButton{\n"
+"    background-color: rgb(132, 132, 132);\n"
+"    border-radius: 5px;\n"
+"    border-style: outset;\n"
+"    border-width: 2px;\n"
+"    border-color: black;\n"
+"}\n"
+"\n"
+"QPushButton:pressed{\n"
+"    \n"
+"    background-color: rgb(0, 85, 255);\n"
+"}\n"
+"")
+        self.Btn_Abrir.setCheckable(False)
+        self.Btn_Abrir.setObjectName("Btn_Abrir")
+        self.verticalLayout_2.addWidget(self.Btn_Abrir)
+        self.Btn_Cerrar = QtWidgets.QPushButton(self.frame_grafs_18)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.Btn_Cerrar.sizePolicy().hasHeightForWidth())
+        self.Btn_Cerrar.setSizePolicy(sizePolicy)
+        self.Btn_Cerrar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.Btn_Cerrar.setMouseTracking(False)
+        self.Btn_Cerrar.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.Btn_Cerrar.setWhatsThis("")
+        self.Btn_Cerrar.setAutoFillBackground(False)
+        self.Btn_Cerrar.setStyleSheet("QPushButton{\n"
+"    background-color: rgb(132, 132, 132);\n"
+"    border-radius: 5px;\n"
+"    border-style: outset;\n"
+"    border-width: 2px;\n"
+"    border-color: black;\n"
+"}\n"
+"\n"
+"QPushButton:pressed{\n"
+"    \n"
+"    background-color: rgb(0, 85, 255);\n"
+"}\n"
+"")
+        self.Btn_Cerrar.setCheckable(False)
+        self.Btn_Cerrar.setObjectName("Btn_Cerrar")
+        self.verticalLayout_2.addWidget(self.Btn_Cerrar)
+        self.label_7 = QtWidgets.QLabel(self.frame_grafs_18)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_7.setFont(font)
+        self.label_7.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_7.setObjectName("label_7")
+        self.verticalLayout_2.addWidget(self.label_7)
         self.verticalLayout_24.addWidget(self.frame_grafs_18)
         self.gridLayout.addWidget(self.frame_graficos_16, 1, 2, 1, 1)
         self.verticalLayout.addWidget(self.frame_principal)
@@ -535,17 +592,15 @@ class Ui_Stations(object):
         self.label_26.setText(_translate("Stations", "CABECEO:"))
         self.label_27.setText(_translate("Stations", "ORIENTACIÓN:"))
         self.Title_tipofiltro_24.setText(_translate("Stations", "TP2 - Estaciones"))
-        self.pushButton.setText(_translate("Stations", "Buscar"))
-        self.textBrowser.setHtml(_translate("Stations", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:7.8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8.25pt;\"><br /></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; text-decoration: underline;\">Autores:</span></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">Batinic Rey, Joaquín</span></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">Bosch, Dimas</span></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">Cardozo, Juan Francisco</span></p>\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">Irigoyen, Enrique</span></p></body></html>"))
+        self.Btn_buscar.setText(_translate("Stations", "Buscar"))
+        self.Btn_Abrir.setText(_translate("Stations", "Abrir puerto seleccionado"))
+        self.Btn_Cerrar.setText(_translate("Stations", "Cerrar puerto actual"))
+        self.label_7.setText(_translate("Stations", "\n"
+"Autores:\n"
+"Batinic Rey, Joaquín\n"
+"Bosch, Dimas\n"
+"Cardozo, Juan Francisco\n"
+"Irigoyen, Enrique"))
 
 
 if __name__ == "__main__":
