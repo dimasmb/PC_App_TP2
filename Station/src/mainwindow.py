@@ -22,6 +22,7 @@ class Stations(QMainWindow, Ui_Stations):
         self.setupUi(self)
         self.ser = None
         self.serial_opened = False
+        self.cont=0
 
         # inicializo los valores
         self.rolidos = [self.rolido0_val, self.rolido1_val, self.rolido2_val, self.rolido3_val, self.rolido4_val]
@@ -49,7 +50,6 @@ class Stations(QMainWindow, Ui_Stations):
         self.refresh_timer.timeout.connect(self.refreshGrafik)
 
         self.start_refresher()
-        self.cont=0
 
     def open_port(self):
         if self.comboBox.count() >= 1:
@@ -133,26 +133,21 @@ class Stations(QMainWindow, Ui_Stations):
         self.axes = [self.ax_station0, self.ax_station1, self.ax_station2, self.ax_station3, self.ax_station4]
         self.canvases = [self.canvas_station0, self.canvas_station1, self.canvas_station2, self.canvas_station3, self.canvas_station4]
 
-        vertices = [list(zip(self.x_init, self.y_init, self.z_init))]
-        for i in range(len(self.axes)):
-            self.axes[i].quiver([0, 0], [-4, -4], [0, 0], [-1, 0], [0, 0], [0, 1], length=2, color='red', normalize=True)
-            self.axes[i].add_collection3d(Poly3DCollection(vertices))
-            self.axes[i].set_xlim(-4, 4)
-            self.axes[i].set_ylim(-4, 4)
-            self.axes[i].set_zlim(-4, 4)
-            self.figures[i].tight_layout()
-            self.axes[i].disable_mouse_rotation()
-            self.axes[i].view_init(30, 45)
-            self.axes[i].axis('off')
-            self.canvases[i].show()
+        self.refreshGrafik()
+
+    def get_info(self):
+        if self.serial_opened:
+            data = self.ser.read(20)
+            dataStr = data.decode('Ascii')
+            self.label.setText(dataStr)
 
     def refreshGrafik(self):
-
+        self.get_info()
         """FOR DEBUG"""
         self.cont += 1
-        self.rolidos[0].setText(str(self.cont)+'º')
-        self.orientaciones[1].setText(str(self.cont)+'º')
-        self.cabeceos[2].setText(str(self.cont)+'º')
+        # self.rolidos[0].setText(str(self.cont)+'º')
+        # self.orientaciones[1].setText(str(self.cont)+'º')
+        # self.cabeceos[2].setText(str(self.cont)+'º')
         """-----------------------------"""
         rolido_val = [int(i.text()[:-1]) for i in self.rolidos]
         cabeceo_val = [int(i.text()[:-1]) for i in self.cabeceos]
@@ -160,12 +155,17 @@ class Stations(QMainWindow, Ui_Stations):
 
         sin = np.sin(orient_val * ((np.pi / 180)*np.ones(5)))
         cos = np.cos(orient_val * ((np.pi / 180)*np.ones(5)))
-        for i in range(len(self.axes)):
-            xx = self.x_init * np.cos(rolido_val[i]*(np.pi/180))
-            yy = self.y_init * np.cos(cabeceo_val[i]*(np.pi/180))
-            zz = self.x_init * np.sin(rolido_val[i]*(np.pi/180)) + self.y_init * np.sin(cabeceo_val[i]*(np.pi/180))
 
-            vertices = [list(zip(xx, yy, zz))]
+        xx = self.x_init.reshape((4, 1)) * np.cos(rolido_val * ((np.pi / 180) * np.ones(len(rolido_val))))
+        yy = self.y_init.reshape((4, 1)) * np.cos(cabeceo_val * ((np.pi / 180) * np.ones(len(cabeceo_val))))
+        zz = self.x_init.reshape((4, 1)) * np.sin(rolido_val * ((np.pi / 180) * np.ones(len(rolido_val)))) \
+             + self.y_init.reshape((4, 1)) * np.sin(cabeceo_val * ((np.pi / 180) * np.ones(len(rolido_val))))
+        for i in range(len(self.axes)):
+
+            vertices = [list(zip(xx[:, i], yy[:, i], zz[:, i]))]
+            normal=np.cross([xx[0, i]-xx[1, i], yy[0, i]-yy[1, i], zz[0, i]-zz[1, i]],
+                            [xx[2, i]-xx[1, i], yy[2, i]-yy[1, i], zz[2, i]-zz[1, i]])
+
             self.axes[i].cla()
             self.axes[i].quiver([0], [0], [7], [-sin[i]], [cos[i]], [0],
                                 length=2, color='red', normalize=True) #Norte
@@ -179,14 +179,15 @@ class Stations(QMainWindow, Ui_Stations):
             self.axes[i].text(sin[i]*2.5, -cos[i]*2.5, 7, 'S')
             self.axes[i].text(-cos[i]*2.5, -sin[i]*2.5, 7, 'O')
             self.axes[i].text(cos[i]*3.5, sin[i]*3.5, 7, 'E')
+
             self.axes[i].add_collection3d(Poly3DCollection(vertices))
-            # self.axes[i].scatter((xx[2]+xx[1])/2, ((yy[2]+yy[1])/2)*1.5, ((zz[2]+zz[1])/2)*1.5, c='red', linewidth=3)
-            self.axes[i].quiver([(xx[2]+xx[1])/2], [(yy[2]+yy[1])/2], [(zz[2]+zz[1])/2],
-                                [xx[2], xx[1]], [yy[2], yy[1]], [zz[2], zz[1]],
+
+            self.axes[i].quiver([xx[2, i], xx[1, i]], [yy[2, i], yy[1, i]], [zz[2, i], zz[1, i]],
+                                [normal[0]], [normal[1]], [normal[2]],
                                 length=1, color='red', normalize=True)  # Norte
-            self.axes[i].set_xlim(-4, 4)
-            self.axes[i].set_ylim(-4, 4)
-            self.axes[i].set_zlim(-4, 4)
+            self.axes[i].set_xlim(-3, 3)
+            self.axes[i].set_ylim(-3, 3)
+            self.axes[i].set_zlim(-1.5, 4.5)
 
             self.axes[i].axis('off')
 
